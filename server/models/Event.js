@@ -1,14 +1,39 @@
 import mongoose from "mongoose";
 
 const EventSchema = new mongoose.Schema({
-  name: { type: String, required: true, default: "New event" },
-  description: { type: String },
-  date_start: { type: Date, required: true },
-  date_end: { type: Date, required: true },
+  name: {
+    type: String,
+    required: true,
+    default: "New event",
+  },
+  description: {
+    type: String,
+  },
+  date_start: {
+    type: Date,
+    required: true,
+  },
+  date_end: {
+    type: Date,
+    required: true,
+  },
   calendars: [
-    { type: mongoose.Schema.Types.ObjectId, ref: "Calendar", required: true },
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Calendar",
+      required: true,
+    },
   ],
-  type: { type: String, required: true, default: "task" },
+  type: {
+    type: String,
+    required: true,
+    default: "task",
+  },
+  completed: {
+    type: Boolean,
+    required: true,
+    default: false,
+  },
 });
 export default mongoose.model("Event", EventSchema);
 
