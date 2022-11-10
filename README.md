@@ -12,4 +12,4 @@ SERVICE = Gmail\
 EMAIL_PORT = 3002\
 SECURE = true\
 USER = #email\
-PASS = #password\
+PASS = #password
