@@ -3,12 +3,12 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 // import cors from "cors";
 import fileUpload from "express-fileupload";
+import cookieParser from "cookie-parser";
 
-// import authRoute from "./routes/auth.js";
-// import postRoute from "./routes/posts.js";
-// import commentRoute from "./routes/comments.js";
-// import categoryRoute from "./routes/categories.js";
-// import userRoute from "./routes/users.js";
+import authRoute from "./routes/auth.js";
+import calendarRoute from "./routes/calendar.js";
+import usersRoute from "./routes/members.js";
+import eventRoute from "./routes/event.js";
 
 const app = express();
 dotenv.config();
@@ -23,15 +23,16 @@ const DB_NAME = process.env.DB_NAME;
 // app.use(cors());
 app.use(fileUpload());
 app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 app.use(express.static("uploads"));
 
 // Routes
 // http://localhost:3002
-// app.use("/api/auth", authRoute);
-// app.use("/api/posts", postRoute);
-// app.use("/api/comments", commentRoute);
-// app.use("/api/categories", categoryRoute);
-// app.use("/api/users", userRoute);
+app.use("/api/auth", authRoute);
+app.use("/api/calendars", calendarRoute);
+app.use("/api/users", usersRoute);
+app.use("/api/events", eventRoute);
 
 async function start() {
   try {
