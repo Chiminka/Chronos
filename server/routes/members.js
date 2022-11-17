@@ -19,11 +19,11 @@ router.post("/invite", userController.inviteFriends);
 // http://localhost:3002/api/users/calendars/:id
 router.get("/calendars/:id", userController.GetMembers);
 
-// Delete event by id +
+// Delete user by id +
 // http://localhost:3002/api/users/:id
 router.delete("/:id", userController.deleteUser);
 
-// Update event by id +
+// Update user by id +
 // http://localhost:3002/api/users/:id
 router.patch("/:id", userController.updateUser);
 
