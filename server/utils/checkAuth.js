@@ -9,9 +9,7 @@ export const verifyJWT = async (req, res, next) => {
     const token = cookies.accessToken;
     try {
       const decode = jwt.verify(token, process.env.JWT_SECRET);
-      console.log(decode);
-      const user = await User.findOne({ email: decode.email });
-      console.log(user);
+      const user = await User.findOne({ email: decode.UserInfo.email });
       if (!user) {
         return res.json({ success: false, message: "1unauthorized access!" });
       }

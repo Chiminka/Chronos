@@ -5,7 +5,6 @@ import { verifyJWT } from "../utils/checkAuth.js";
 const authController = new AuthController();
 
 const router = new Router();
-// router.use(verifyJWT);
 
 // Register +
 // http://localhost:3002/api/auth/register

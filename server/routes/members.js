@@ -7,16 +7,24 @@ const userController = new UserController();
 const router = new Router();
 router.use(verifyJWT);
 
-// Get my calendars
-// http://localhost:3002/api/auth/users/calendars
-router.post("/calendars", userController.getMyCalendars);
+// Get my calendars +
+// http://localhost:3002/api/users/calendars
+router.get("/calendars", userController.getMyCalendars);
 
 // Invite friend
-// http://localhost:3002/api/auth/users/ivite
+// http://localhost:3002/api/users/ivite
 router.post("/invite", userController.inviteFriends);
 
-// Get calendar members
-// http://localhost:3002/api/auth/users
-router.get("/", userController.GetMembers);
+// Get calendar members +
+// http://localhost:3002/api/users/calendars/:id
+router.get("/calendars/:id", userController.GetMembers);
+
+// Delete event by id +
+// http://localhost:3002/api/users/:id
+router.delete("/:id", userController.deleteUser);
+
+// Update event by id +
+// http://localhost:3002/api/users/:id
+router.patch("/:id", userController.updateUser);
 
 export default router;

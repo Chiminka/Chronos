@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const EventSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: false,
     default: "New event",
   },
   description: {
@@ -26,12 +26,11 @@ const EventSchema = new mongoose.Schema({
   ],
   type: {
     type: String,
-    required: true,
+    required: false,
     default: "task",
   },
   completed: {
     type: Boolean,
-    required: true,
     default: false,
   },
 });

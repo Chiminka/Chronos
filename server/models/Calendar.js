@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const CalendarSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: false,
     default: "New calendar",
   },
   description: {
@@ -12,12 +12,12 @@ const CalendarSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    required: true,
+    required: false,
     default: "additionally",
   },
   color: {
     type: String,
-    required: true,
+    required: false,
     default: "fffff",
   },
   icon: {
@@ -27,12 +27,12 @@ const CalendarSchema = new mongoose.Schema({
   },
   visible: {
     type: Boolean,
-    required: true,
+    required: false,
     default: "true",
   },
   national_holidays: {
     type: Boolean,
-    required: true,
+    required: false,
     default: "true",
   },
   author: {

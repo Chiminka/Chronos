@@ -8,19 +8,26 @@ import { decode } from "punycode";
 export class AuthController {
   async register(req, res) {
     try {
-      const { full_name, password, email, repeatPassword } = req.body;
+      const { username, full_name, password, email, repeatPassword } = req.body;
 
-      if (!full_name || !password || !email || !repeatPassword)
-        return res
-          .status(StatusCodes.NO_CONTENT)
-          .json({ message: "Content can not be empty" });
+      if (!username || !password || !email || !repeatPassword)
+        return res.json({ message: "Content can not be empty" });
 
       if (password === repeatPassword) {
-        const isUsed = await User.findOne({ full_name });
-
-        if (isUsed) {
+        const usernameExist = await User.findOne({ username });
+        const emailExist = await User.findOne({ email });
+        if (emailExist || usernameExist) {
           return res.json({
-            message: "This username already is taken",
+            message: "These username or email already are taken",
+          });
+        }
+
+        var validRegex =
+          /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+
+        if (!email.match(validRegex)) {
+          return res.json({
+            message: "Email isn't valid",
           });
         }
 
@@ -29,17 +36,10 @@ export class AuthController {
 
         const newUser = new User({
           full_name,
+          username,
           password: hash,
           email,
         });
-
-        // const token = jwt.sign(
-        //   {
-        //     id: newUser._id,
-        //   },
-        //   process.env.JWT_SECRET,
-        //   { expiresIn: "30d" }
-        // );
 
         const v_token = jwt.sign(
           {
@@ -61,11 +61,11 @@ export class AuthController {
         ////////////////////////////////////////
         res.json({
           newUser,
-          // token,
           message: "An Email sent to your account please verify",
         });
       } else return res.json({ message: "Different passwords" });
     } catch (error) {
+      console.log(error);
       res.json({ message: "Creating user error" });
     }
   }
@@ -96,7 +96,7 @@ export class AuthController {
           return res.status(401).json({ message: "Unauthorized" });
 
         const accessToken = jwt.sign(
-          { email: foundUser.email },
+          { UserInfo: { email: foundUser.email } },
           process.env.JWT_SECRET,
           { expiresIn: "15m" }
         );
@@ -110,14 +110,14 @@ export class AuthController {
         // Create secure cookie with refresh token
         res.cookie("jwt", refreshToken, {
           httpOnly: true, //accessible only by web server
-          secure: true, //https
+          secure: false, //https
           sameSite: "None", //cross-site cookie
           maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
         });
         // Create secure cookie with refresh token
         res.cookie("accessToken", accessToken, {
           httpOnly: true, //accessible only by web server
-          secure: true, //https
+          secure: false, //https
           sameSite: "None", //cross-site cookie
           maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
         });
@@ -129,6 +129,9 @@ export class AuthController {
   async login(req, res) {
     try {
       const { username_or_email, password } = req.body;
+
+      if (!username_or_email || !password)
+        return res.json({ message: "Content can not be empty" });
 
       let user = await User.findOne({ email: username_or_email });
 
@@ -164,14 +167,14 @@ export class AuthController {
       // Create secure cookie with refresh token
       res.cookie("jwt", refreshToken, {
         httpOnly: true, //accessible only by web server
-        secure: true, //https
+        secure: false, //https
         sameSite: "None", //cross-site cookie
         maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
       });
       // Create secure cookie with refresh token
       res.cookie("accessToken", accessToken, {
         httpOnly: true, //accessible only by web server
-        secure: true, //https
+        secure: false, //https
         sameSite: "None", //cross-site cookie
         maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
       });
@@ -207,6 +210,11 @@ export class AuthController {
     const cookies = req.cookies;
     if (!cookies?.jwt) return res.sendStatus(204); //No content
     res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true });
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      sameSite: "None",
+      secure: false,
+    });
     res.json({ message: "Cookie cleared" });
   }
   async verifyEmail(req, res) {
@@ -253,6 +261,8 @@ export class AuthController {
     try {
       const { email } = req.body;
 
+      if (!email) return res.json({ message: "Content can not be empty" });
+
       const user = await User.findOne({ email });
 
       if (!user)
@@ -283,9 +293,7 @@ export class AuthController {
     const { new_password, confirm_password } = req.body;
 
     if (!new_password || !confirm_password)
-      return res
-        .status(StatusCodes.NO_CONTENT)
-        .json({ message: "Content can not be empty" });
+      return res.json({ message: "Content can not be empty" });
 
     const token = req.params.token;
     jwt.verify(
