@@ -14,13 +14,9 @@ router.post("/register", authController.register);
 // http://localhost:3002/api/auth/login
 router.post("/login", authController.login);
 
-// Refresh token +
-// http://localhost:3002/api/auth/refresh
-router.get("/refresh", authController.refresh);
-
 // Log out +
 // http://localhost:3002/api/auth/logout
-router.post("/logout", authController.logout);
+router.get("/logout", authController.logout);
 
 // Forgot password +
 // http://localhost:3002/api/auth/recover

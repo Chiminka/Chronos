@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import mailTransport from "../utils/mailTransport.js";
 import asyncHandler from "express-async-handler";
-import { decode } from "punycode";
+import { createMainCalendar } from "../utils/createMainCalendar.js";
 
 export class AuthController {
   async register(req, res) {
@@ -31,6 +31,12 @@ export class AuthController {
           });
         }
 
+        if (!username.match(/^[a-zA-Z0-9._]*$/)) {
+          return res.json({
+            message: "Username isn't valid",
+          });
+        }
+
         const salt = bcrypt.genSaltSync(10);
         const hash = bcrypt.hashSync(password, salt);
 
@@ -49,8 +55,12 @@ export class AuthController {
           { expiresIn: "10m" }
         );
 
-        // verification email
         await newUser.save();
+        const user = await User.findOne({ username });
+        console.log(user.id);
+        createMainCalendar(user);
+
+        // verification email
         const url = `${process.env.BASE_URL}verify/${v_token}`;
         mailTransport().sendMail({
           from: process.env.USER,
@@ -69,63 +79,6 @@ export class AuthController {
       res.json({ message: "Creating user error" });
     }
   }
-  async refresh(req, res) {
-    const cookies = req.cookies;
-
-    if (!cookies?.jwt) return res.status(401).json({ message: "Unauthorized" });
-
-    const refreshToken = cookies.jwt;
-
-    jwt.verify(
-      refreshToken,
-      process.env.REFRESH_TOKEN_SECRET,
-      asyncHandler(async (err, decoded) => {
-        if (err) return res.status(403).json({ message: "Forbidden" });
-
-        const foundUser = await User.findOne({
-          email: decoded.email,
-        }).exec();
-
-        if (!foundUser) {
-          foundUser = await User.findOne({
-            email: decoded.email,
-          }).exec();
-        }
-
-        if (!foundUser)
-          return res.status(401).json({ message: "Unauthorized" });
-
-        const accessToken = jwt.sign(
-          { UserInfo: { email: foundUser.email } },
-          process.env.JWT_SECRET,
-          { expiresIn: "15m" }
-        );
-
-        const refreshToken = jwt.sign(
-          { email: foundUser.email },
-          process.env.REFRESH_TOKEN_SECRET,
-          { expiresIn: "7d" }
-        );
-
-        // Create secure cookie with refresh token
-        res.cookie("jwt", refreshToken, {
-          httpOnly: true, //accessible only by web server
-          secure: false, //https
-          sameSite: "None", //cross-site cookie
-          maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
-        });
-        // Create secure cookie with refresh token
-        res.cookie("accessToken", accessToken, {
-          httpOnly: true, //accessible only by web server
-          secure: false, //https
-          sameSite: "None", //cross-site cookie
-          maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
-        });
-
-        res.json({ accessToken, refreshToken });
-      })
-    );
-  }
   async login(req, res) {
     try {
       const { username_or_email, password } = req.body;
@@ -143,6 +96,24 @@ export class AuthController {
         return res.json({ success: false, message: "User not exist" });
       }
 
+         const v_token = jwt.sign(
+           {
+             email: user.email,
+           },
+           process.env.JWT_SECRET,
+           { expiresIn: "10m" }
+         );
+
+      if (!user.verified) {
+        const url = `${process.env.BASE_URL}verify/${v_token}`;
+        mailTransport().sendMail({
+          from: process.env.USER,
+          to: user.email,
+          subject: "Verify your email account",
+          html: `<h1>${url}</h1>`,
+        });
+        return res.json({ message: "An Email sent to your account again" });
+      }
       const isPasswordCorrect = await bcrypt.compare(password, user.password);
       if (!isPasswordCorrect) {
         return res.json({ success: false, message: "Uncorrect password" });
@@ -167,36 +138,14 @@ export class AuthController {
       // Create secure cookie with refresh token
       res.cookie("jwt", refreshToken, {
         httpOnly: true, //accessible only by web server
-        secure: false, //https
-        sameSite: "None", //cross-site cookie
         maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
       });
       // Create secure cookie with refresh token
       res.cookie("accessToken", accessToken, {
         httpOnly: true, //accessible only by web server
-        secure: false, //https
-        sameSite: "None", //cross-site cookie
         maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
       });
-
-      const v_token = jwt.sign(
-        {
-          email: user.email,
-        },
-        process.env.JWT_SECRET,
-        { expiresIn: "10m" }
-      );
-
-      if (!user.verified) {
-        const url = `${process.env.BASE_URL}verify/${v_token}`;
-        mailTransport().sendMail({
-          from: process.env.USER,
-          to: user.email,
-          subject: "Verify your email account",
-          html: `<h1>${url}</h1>`,
-        });
-        return res.json({ message: "An Email sent to your account again" });
-      }
+      
       res.json({
         user,
         message: "You are signed in",
@@ -209,11 +158,9 @@ export class AuthController {
   async logout(req, res) {
     const cookies = req.cookies;
     if (!cookies?.jwt) return res.sendStatus(204); //No content
-    res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true });
+    res.clearCookie("jwt", { httpOnly: true });
     res.clearCookie("accessToken", {
       httpOnly: true,
-      sameSite: "None",
-      secure: false,
     });
     res.json({ message: "Cookie cleared" });
   }

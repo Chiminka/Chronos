@@ -18,19 +18,9 @@ const CalendarSchema = new mongoose.Schema({
   color: {
     type: String,
     required: false,
-    default: "fffff",
-  },
-  icon: {
-    type: String,
-    required: true,
-    default: "",
+    default: "#c4def6",
   },
   visible: {
-    type: Boolean,
-    required: false,
-    default: "true",
-  },
-  national_holidays: {
     type: Boolean,
     required: false,
     default: "true",

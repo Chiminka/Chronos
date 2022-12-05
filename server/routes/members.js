@@ -12,7 +12,7 @@ router.use(verifyJWT);
 router.get("/calendars", userController.getMyCalendars);
 
 // Invite friend
-// http://localhost:3002/api/users/ivite
+// http://localhost:3002/api/users/invite
 router.post("/invite", userController.inviteFriends);
 
 // Get calendar members +

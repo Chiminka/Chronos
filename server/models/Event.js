@@ -15,6 +15,11 @@ const EventSchema = new mongoose.Schema({
   },
   date_end: {
     type: Date,
+    required: false,
+  },
+  author: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
     required: true,
   },
   calendars: [
@@ -24,6 +29,14 @@ const EventSchema = new mongoose.Schema({
       required: true,
     },
   ],
+  repeat: {
+    type: String,
+    required: false,
+  },
+  remind: {
+    type: String,
+    required: false,
+  },
   type: {
     type: String,
     required: false,
