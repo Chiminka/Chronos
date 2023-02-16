@@ -96,13 +96,13 @@ export class AuthController {
         return res.json({ success: false, message: "User not exist" });
       }
 
-         const v_token = jwt.sign(
-           {
-             email: user.email,
-           },
-           process.env.JWT_SECRET,
-           { expiresIn: "10m" }
-         );
+      const v_token = jwt.sign(
+        {
+          email: user.email,
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: "10m" }
+      );
 
       if (!user.verified) {
         const url = `${process.env.BASE_URL}verify/${v_token}`;
@@ -145,7 +145,7 @@ export class AuthController {
         httpOnly: true, //accessible only by web server
         maxAge: 7 * 24 * 60 * 60 * 1000, //cookie expiry: set to match rT
       });
-      
+
       res.json({
         user,
         message: "You are signed in",

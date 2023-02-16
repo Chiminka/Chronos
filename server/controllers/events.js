@@ -38,6 +38,7 @@ export class EventController {
         return res.json({ message: "Content can not be empty" });
 
       if (date_start) {
+        console.log(date_start);
         const date_s = new Date(`${date_start}T00:00:00`);
         date_start = !date_start.includes("T")
           ? (date_start = date_s)
